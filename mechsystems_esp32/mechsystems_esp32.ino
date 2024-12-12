@@ -45,8 +45,8 @@ Firebase.reconnectWiFi(true);
 }
 void loop() {
 
-  ldrData = random();
-  voltage = random();
+  ldrData = random(200);
+  voltage = random(200);
 
   if(Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 1000 || sendDataPrevMillis ==0)){
     sendDataPrevMillis= millis();
