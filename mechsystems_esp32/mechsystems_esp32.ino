@@ -20,15 +20,28 @@ int ldrData =0;
 float voltage =0.0;
 
 void setup() {
-serial.begin(115200);
-wifi.begin(WIFI_SSID, WIFI_PASSWORD);
-serial.print ("CONNECTING  TO WI-FI");
-serial.println(wifi.localIP());
-serial.println();
+Serial.begin(115200);
+WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+Serial.print ("CONNECTING  TO WI-FI");
+while(WiFi.status() != WL_CONNECTED){
+  Serial.print("..."); delay(300);
+}
+Serial.println();
+Serial.print("Connected with IP: ");
+Serial.println(WiFi.localIP());
+Serial.println();
 
-config .api_key=API_KEY;
+config.api_key=API_KEY;
 config.database_url=DATABASE_URL;
-if(Firebase.signUp(&config,&auth, "", ""))
+if(Firebase.signUp(&config, &auth, "", "")){
+  Serial.println("SignUP OK");
+signupOK = true;
+}else{
+  Serial.print("%s\n", config.signer.signupError.message.c_str());
+}
+config.token_status_callback = tokenStatusCallBack;
+Firebase.begin(&config, &auth);
+Firebase.reconnectWiFi(true);
 }
 void loop() {
   
