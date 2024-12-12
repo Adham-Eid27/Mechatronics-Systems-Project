@@ -1,7 +1,7 @@
-#include <wifi.h>
+#include <WiFi.h>
 #include <Firebase_ESP_Client.h>
 #include "addons/TokenHelper.h"
-#include "addons/RTDPHelper.h"
+#include "addons/RTDBHelper.h"
 
 #define WIFI_SSID "AASTGUEST"
 #define WIFI_PASSWORD ""
@@ -37,12 +37,37 @@ if(Firebase.signUp(&config, &auth, "", "")){
   Serial.println("SignUP OK");
 signupOK = true;
 }else{
-  Serial.print("%s\n", config.signer.signupError.message.c_str());
+  Serial.printf("%s\n", config.signer.signupError.message.c_str());
 }
-config.token_status_callback = tokenStatusCallBack;
+config.token_status_callback = tokenStatusCallback;
 Firebase.begin(&config, &auth);
 Firebase.reconnectWiFi(true);
 }
 void loop() {
+
+  ldrData = random();
+  voltage = random();
+
+  if(Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 1000 || sendDataPrevMillis ==0)){
+    sendDataPrevMillis= millis();
+    ldrData = analogRead(LDR_PIN);
+    voltage = (float)analogReadMilliVolts(LDR_PIN)/1000;
+    if(Firebase.RTDB.setInt(&fbdo, "Sensor/ldr_data", ldrData)){
+      Serial.println();
+      Serial.print(ldrData);
+      Serial.print(" - successfully saved to: " + fbdo.dataPath());
+      Serial.println(" (" + fbdo.dataType() + ") ");
+    }else{
+      Serial.println("FAILED: " + fbdo.errorReason());
+    }
+    if(Firebase.RTDB.setFloat(&fbdo, "Sensor/Voltage", voltage)){
+      Serial.println();
+      Serial.print(voltage);
+      Serial.print("- succesfully saved to: " + fbdo.dataPath());
+      Serial.println(" (" + fbdo.dataType() + ")");
+    }else{
+      Serial.println("FAILED: " + fbdo.errorReason());
+    }
+  }
   
 }
