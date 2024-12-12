@@ -3,8 +3,8 @@
 #include "addons/TokenHelper.h"
 #include "addons/RTDBHelper.h"
 
-#define WIFI_SSID "AASTGUEST"
-#define WIFI_PASSWORD ""
+#define WIFI_SSID "Esp32test"
+#define WIFI_PASSWORD "yess1234"
 #define API_KEY "AIzaSyAi7m5RWfiDAvIHr3786ryhX-UHvTIXEPY"
 #define DATABASE_URL "https://mechasystem-7394a-default-rtdb.europe-west1.firebasedatabase.app/"
 
@@ -45,13 +45,13 @@ Firebase.reconnectWiFi(true);
 }
 void loop() {
 
-  ldrData = random(200);
-  voltage = random(200);
-
   if(Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 1000 || sendDataPrevMillis ==0)){
     sendDataPrevMillis= millis();
     ldrData = analogRead(LDR_PIN);
+    ldrData = random(200);
     voltage = (float)analogReadMilliVolts(LDR_PIN)/1000;
+    voltage = random(200);
+    
     if(Firebase.RTDB.setInt(&fbdo, "Sensor/ldr_data", ldrData)){
       Serial.println();
       Serial.print(ldrData);
@@ -63,6 +63,7 @@ void loop() {
     if(Firebase.RTDB.setFloat(&fbdo, "Sensor/Voltage", voltage)){
       Serial.println();
       Serial.print(voltage);
+      voltage = random(200);
       Serial.print("- succesfully saved to: " + fbdo.dataPath());
       Serial.println(" (" + fbdo.dataType() + ")");
     }else{
