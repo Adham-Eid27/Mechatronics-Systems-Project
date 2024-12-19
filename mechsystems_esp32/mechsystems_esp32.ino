@@ -2,7 +2,7 @@
 #include <Firebase_ESP_Client.h>
 #include "addons/TokenHelper.h"
 #include "addons/RTDBHelper.h"
-#include "DHT.h"
+#include <DHT.h>
 
 #define WIFI_SSID "Esp32test"
 #define WIFI_PASSWORD "yess1234"
@@ -22,8 +22,8 @@ bool signupOK = false;
 int ldrData =0;
 int line =0;
 
-float temp;
-float humid;
+float temp=0;
+float humid=0;
 
 DHT dht(DHTpin, DHT11);
 
@@ -56,7 +56,7 @@ Firebase.reconnectWiFi(true);
 }
 void loop() {
 
-  if(Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 1000 || sendDataPrevMillis ==0)){
+  if(Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 100 || sendDataPrevMillis ==0)){
     sendDataPrevMillis= millis();
     //LDR
     ldrData = analogRead(LDR_PIN);
@@ -68,9 +68,9 @@ void loop() {
     
 
     //LDR
-    if(Firebase.RTDB.setInt(&fbdo, "Sensor/LDR", ldrData)){
+    if(Firebase.RTDB.setInt(&fbdo, "/Sensor/LDR", ldrData)){
       Serial.println();
-      ldrData = random(200);
+      //ldrData = random(200);
       Serial.print(ldrData);
       Serial.print(" - successfully saved to: " + fbdo.dataPath());
       Serial.println(" (" + fbdo.dataType() + ") ");
@@ -79,33 +79,33 @@ void loop() {
     }
 
     //DHT11 temperature
-    if(Firebase.RTDB.setFloat(&fbdo, "Sensor/DHT:Temperature", temp)){
+    if(Firebase.RTDB.setFloat(&fbdo, F("/Sensor/DHTTemperature"), temp)){
       Serial.println();
-      temp = random(200);
+      //temp = random(200);
       Serial.print(temp);
-      Serial.print("- succesfully saved to: " + fbdo.dataPath());
-      Serial.println(" (" + fbdo.dataType() + ")");
+      Serial.print(" - succesfully saved to: " + fbdo.dataPath());
+      Serial.println(" (" + fbdo.dataType() + ") ");
     }else{
       Serial.println("FAILED: " + fbdo.errorReason());
     }
 
     //DHT11 humid
-    if(Firebase.RTDB.setFloat(&fbdo, "Sensor/DHT:Humidity", humid)){
+    if(Firebase.RTDB.setFloat(&fbdo, F("/Sensor/DHTHumidity"), humid)){
       Serial.println();
-      humid = random(200);
+      //humid = random(200);
       Serial.print(humid);
-      Serial.print("- succesfully saved to: " + fbdo.dataPath());
+      Serial.print(" - succesfully saved to: " + fbdo.dataPath());
       Serial.println(" (" + fbdo.dataType() + ")");
     }else{
       Serial.println("FAILED: " + fbdo.errorReason());
     }
 
     //Line follower
-    if(Firebase.RTDB.setFloat(&fbdo, "Sensor/Line Follower", Line_follower)){
+    if(Firebase.RTDB.setInt(&fbdo, "/Sensor/LineFollower", line)){
       Serial.println();
-      Line_follower = random(200);
-      Serial.print(Line_follower);
-      Serial.print("- succesfully saved to: " + fbdo.dataPath());
+      //Line_follower = random(200);
+      Serial.print(line);
+      Serial.print(" - succesfully saved to: " + fbdo.dataPath());
       Serial.println(" (" + fbdo.dataType() + ")");
     }else{
       Serial.println("FAILED: " + fbdo.errorReason());
