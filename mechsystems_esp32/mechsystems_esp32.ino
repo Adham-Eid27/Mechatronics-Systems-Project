@@ -4,11 +4,17 @@
 #include "addons/RTDBHelper.h"
 #include <DHT.h>
 #include <arduino.h>
+#include <HardwareSerial.h>
 
 #define WIFI_SSID "Esp32test"
 #define WIFI_PASSWORD "yess1234"
 #define API_KEY "AIzaSyAi7m5RWfiDAvIHr3786ryhX-UHvTIXEPY"
 #define DATABASE_URL "https://mechasystem-7394a-default-rtdb.europe-west1.firebasedatabase.app/"
+
+HardwareSerial SerialPort(2);
+const int Enable =  2;
+const int SlaveNumber = 1;
+int Slave;
 
 int LDR_PIN=34;
 int DHTpin=33;
@@ -30,6 +36,11 @@ float humid=0;
 DHT dht(DHTpin, DHT11);
 
 void setup() {
+
+SerialPort.begin(115200, SERIAL_8N1, 16, 17); 
+  SerialPort.setTimeout(250);
+  pinMode(Enable, OUTPUT);
+
 pinMode(RelayPin, OUTPUT);
 digitalWrite(RelayPin, LOW);
 
@@ -130,6 +141,23 @@ void loop() {
       Serial.println("FAILED: " + fbdo.errorReason());
     }
 
+    digitalWrite(Enable, LOW); 
+    Slave = SerialPort.read();
+      Serial.println(Slave);
+  if(SerialPort.available())
+  {
+    delay(10000);
+      Serial.println("It reached here");
+      Slave = SerialPort.read();
+      Serial.println(Slave);
+      if(Slave == SlaveNumber)
+      {   
+        String command = SerialPort.readString(); 
+          Serial.println("pls"); 
+          Serial.println(command);
+           Serial.println("loop");
+        }
+
   }
-  
+  }
 }
