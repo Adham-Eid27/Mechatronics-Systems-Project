@@ -3,6 +3,7 @@
 #include "addons/TokenHelper.h"
 #include "addons/RTDBHelper.h"
 #include <DHT.h>
+#include <arduino.h>
 
 #define WIFI_SSID "Esp32test"
 #define WIFI_PASSWORD "yess1234"
@@ -12,6 +13,7 @@
 int LDR_PIN=34;
 int DHTpin=33;
 int Line_follower=32;
+int RelayPin=27;
 
 FirebaseData fbdo;
 FirebaseAuth auth;
@@ -28,6 +30,9 @@ float humid=0;
 DHT dht(DHTpin, DHT11);
 
 void setup() {
+pinMode(RelayPin, OUTPUT);
+digitalWrite(RelayPin, LOW);
+
 Serial.begin(115200);
 
 dht.begin();
@@ -107,6 +112,20 @@ void loop() {
       Serial.print(line);
       Serial.print(" - succesfully saved to: " + fbdo.dataPath());
       Serial.println(" (" + fbdo.dataType() + ")");
+    }else{
+      Serial.println("FAILED: " + fbdo.errorReason());
+    }
+
+    //relay
+    int Relay;
+    if(Firebase.RTDB.getInt(&fbdo, "/Sensor/RELAY", &Relay)){
+      digitalWrite(RelayPin, Relay);
+      
+      Serial.println();
+      Serial.print(Relay);
+      Serial.print(" - succesfully saved to: " + fbdo.dataPath());
+      Serial.println(" (" + fbdo.dataType() + ")");
+
     }else{
       Serial.println("FAILED: " + fbdo.errorReason());
     }
