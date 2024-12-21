@@ -4,6 +4,10 @@
 #include "addons/RTDBHelper.h"
 #include <DHT.h>
 #include <arduino.h>
+//transmitter
+#include <ModbusMaster.h>
+
+ModbusMaster node;
 
 #define WIFI_SSID "Esp32test"
 #define WIFI_PASSWORD "yess1234"
@@ -14,6 +18,16 @@ int LDR_PIN=34;
 int DHTpin=33;
 int Line_follower=32;
 int RelayPin=27;
+
+#define MAX485_DE_RE 4
+
+void preTransmission() {
+digitalWrite(MAX485_DE_RE, HIGH); // Enable transmitter
+}
+
+void postTransmission() {
+digitalWrite(MAX485_DE_RE, LOW); // Disable transmitter, enable receiver
+}
 
 FirebaseData fbdo;
 FirebaseAuth auth;
@@ -41,6 +55,22 @@ WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 Serial.print ("CONNECTING  TO WI-FI");
 while(WiFi.status() != WL_CONNECTED){
   Serial.print("..."); delay(300);
+
+
+  // Initialize DE/RE pin
+pinMode(MAX485_DE_RE, OUTPUT);
+digitalWrite(MAX485_DE_RE, LOW); // Start with receiver enabled
+
+// Initialize Serial for debugging
+Serial.begin(9600);
+
+// Initialize Modbus communication baud rate
+Serial2.begin(9600, SERIAL_8N1, 16, 17); // Using UART2 (pins 16 and 17)
+
+// Modbus communication settings
+node.begin(1, Serial2); // Slave ID: 1
+node.preTransmission(preTransmission);
+node.postTransmission(postTransmission);
 }
 Serial.println();
 Serial.print("Connected with IP: ");
@@ -129,6 +159,22 @@ void loop() {
     }else{
       Serial.println("FAILED: " + fbdo.errorReason());
     }
+
+    uint8_t result;
+uint16_t data;
+
+// Read holding register 0x0001
+result = node.readHoldingRegisters(0x0001, 1);
+
+if (result == node.ku8MBSuccess) {
+data = node.getResponseBuffer(0x00);
+Serial.print("Register value: ");
+Serial.println(data);
+} else {
+Serial.println("Communication error");
+}
+
+delay(1000);
 
   }
   
